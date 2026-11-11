@@ -1,0 +1,369 @@
+﻿@{
+    ViewData["Title"] = "Warehouse Management";
+}
+
+<style>
+    body {
+        background: #f3f6fb;
+    }
+
+    .dashboard {
+        max-width: 1100px;
+        margin: 40px auto;
+    }
+
+    .page-title {
+        font-weight: 700;
+        color: #24324a;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        color: #8491a5;
+        margin-bottom: 30px;
+    }
+
+    .warehouse-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+        transition: 0.2s;
+    }
+
+        .warehouse-card:hover {
+            transform: translateY(-4px);
+        }
+
+    .warehouse-header {
+        padding: 20px;
+        color: white;
+    }
+
+    .warehouse-a {
+        background: linear-gradient(135deg, #2563eb, #60a5fa);
+    }
+
+    .warehouse-b {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+
+    .warehouse-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .warehouse-total {
+        font-size: 32px;
+        font-weight: 700;
+        margin-top: 12px;
+    }
+
+    .warehouse-header small {
+        opacity: 0.85;
+    }
+
+    .stock-list {
+        padding: 20px;
+        min-height: 130px;
+    }
+
+    .stock-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 11px 13px;
+        margin-bottom: 9px;
+        background: #f5f7fb;
+        border-radius: 8px;
+        color: #344054;
+    }
+
+    .stock-quantity {
+        background: #e0eaff;
+        color: #2563eb;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .transfer-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+        margin-top: 30px;
+    }
+
+    .transfer-title {
+        font-weight: 700;
+        color: #24324a;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #475467;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 11px;
+        border: 1px solid #dce2eb;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #5288f5;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+    .transfer-btn {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 11px 25px;
+        font-weight: 600;
+    }
+
+        .transfer-btn:hover {
+            color: white;
+            opacity: 0.9;
+        }
+</style>
+
+<div class="container dashboard">
+
+    <h2 class="page-title">Warehouse Management</h2>
+    <br />
+
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card warehouse-card">
+
+                <div class="warehouse-header warehouse-a">
+                    <h4>Warehouse A</h4>
+                    <div class="warehouse-total" id="warehouseATotal">0</div>
+                    <small>Total Items in Stock</small>
+                </div>
+
+                <div class="stock-list" id="warehouseA"></div>
+
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card warehouse-card">
+
+                <div class="warehouse-header warehouse-b">
+                    <h4>Warehouse B</h4>
+                    <div class="warehouse-total" id="warehouseBTotal">0</div>
+                    <small>Total Items in Stock</small>
+                </div>
+
+                <div class="stock-list" id="warehouseB"></div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card transfer-card">
+        <div class="card-body p-4">
+
+            <h4 class="transfer-title">Transfer Stock</h4>
+
+            <form id="transferForm">
+
+                <div class="mb-4">
+                    <label class="form-label">Select Product</label>
+                    <select id="product" class="form-select" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label">From Warehouse</label>
+                        <select id="fromWarehouseId" class="form-select">
+                            <option value="1">Warehouse A</option>
+                            <option value="2">Warehouse B</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+                        <label class="form-label">To Warehouse</label>
+                        <select id="toWarehouseId" class="form-select">
+                            <option value="2">Warehouse B</option>
+                            <option value="1">Warehouse A</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="quantity"
+                               class="form-control" min="1" required />
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn transfer-btn">
+                    Transfer Stock
+                </button>
+
+            </form>
+
+            <div id="message" class="mt-3"></div>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script>
+
+        const apiUrl = "http://localhost:50005/api/Warehouse";
+
+        $(document).ready(function () {
+            loadInventory();
+        });
+
+        // Load inventory
+        function loadInventory() {
+
+        $.ajax({
+        url: apiUrl + "/inventory",
+        type: "GET",
+
+        success: function (data) {
+
+         $("#warehouseA, #warehouseB").empty();
+
+        let totalA = 0;
+        let totalB = 0;
+
+        for (let i = 0; i < data.length; i++) {
+
+        let item = data[i];
+
+        if (item.WarehouseId === 1) {
+
+        totalA += item.Quantity;
+
+        $("#warehouseA").append(
+        `<div class="stock-item">
+        <span>${item.Product}</span>
+        <span class="stock-quantity">${item.Quantity}</span>
+        </div>`
+        );
+
+        }
+        else if (item.WarehouseId === 2) {
+
+        totalB += item.Quantity;
+
+        $("#warehouseB").append(
+        `<div class="stock-item">
+        <span>${item.Product}</span>
+        <span class="stock-quantity">${item.Quantity}</span>
+        </div>`
+        );
+        }
+        }
+
+        $("#warehouseATotal").text(totalA);
+        $("#warehouseBTotal").text(totalB);
+
+        $("#product").html('<option value="">Select Product</option>');
+
+        for (let i = 0; i < data.length; i++) {
+
+        let product = data[i].Product;
+        let exists = false;
+
+        $("#product option").each(function () {
+
+        if ($(this).val() === product) {
+        exists = true;
+        }
+
+        });
+
+        if (exists === false) {
+
+        $("#product").append(
+        `<option value="${product}">${product}</option>`
+        );
+
+        }
+        }
+        },
+
+        error: function () {
+
+        $("#message").html(
+        '<div class="alert alert-danger">Unable to load inventory.</div>'
+        );
+
+        }
+        });
+        }
+
+        $("#transferForm").submit(function (e) {
+
+        e.preventDefault();
+
+        let request = {
+        product: $("#product").val(),
+        fromWarehouseId: parseInt($("#fromWarehouseId").val()),
+        toWarehouseId: parseInt($("#toWarehouseId").val()),
+        quantity: parseInt($("#quantity").val())
+        };
+
+
+        if (request.fromWarehouseId === request.toWarehouseId) {
+
+        $("#message").html(
+        '<div class="alert alert-warning">Select different warehouses.</div>'
+        );
+
+        return;
+        }
+
+        // Send transfer request to API
+        $.ajax({
+        url: apiUrl + "/transfer",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(request),
+
+        success: function () {
+
+        $("#message").html(
+        '<div class="alert alert-success">Stock transferred successfully!</div>'
+        );
+
+        $("#transferForm")[0].reset();
+
+        // Refresh inventory after transfer
+        loadInventory();
+        },
+
+        error: function (xhr) {
+
+        $("#message").html(
+        `<div class="alert alert-danger">${xhr.responseText || "Transfer failed."}</div>`
+        );
+
+        }
+        });
+
+        });
+
+    </script>
+}

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="WarehouseManagement.MVC/WarehouseManagement.MVC.csproj" />
+  <Project Path="WarehouseManagement/WarehouseManagement.csproj" />
+</Solution>
