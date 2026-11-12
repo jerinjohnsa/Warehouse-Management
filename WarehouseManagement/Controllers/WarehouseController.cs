@@ -16,7 +16,7 @@ namespace WarehouseManagement.Controllers
             _connectionFactory = connectionFactory;
         }
 
-        // Get all warehouse inventory
+        
         [HttpGet("inventory")]
         public async Task<IActionResult> GetInventory()
         {
@@ -31,7 +31,7 @@ namespace WarehouseManagement.Controllers
             return Ok(result);
         }
 
-        // Transfer stock between warehouses
+        
         [HttpPost("transfer")]
         public async Task<IActionResult> TransferStock(
             [FromBody] TransferRequest request)
@@ -53,7 +53,7 @@ namespace WarehouseManagement.Controllers
 
             try
             {
-                // 1. Deduct stock from source warehouse
+                
                 string deductSql = @"
                     UPDATE WarehouseInventory
                     SET Quantity = Quantity - @Quantity
@@ -72,7 +72,7 @@ namespace WarehouseManagement.Controllers
                         "Product not found or insufficient stock.");
                 }
 
-                // 2. Check whether product exists in destination
+                
                 string checkSql = @"
                     SELECT COUNT(1)
                     FROM WarehouseInventory
@@ -84,7 +84,7 @@ namespace WarehouseManagement.Controllers
 
                 if (productExists > 0)
                 {
-                    // 3. Product exists: update quantity
+                    
                     string updateSql = @"
                         UPDATE WarehouseInventory
                         SET Quantity = Quantity + @Quantity
@@ -96,7 +96,7 @@ namespace WarehouseManagement.Controllers
                 }
                 else
                 {
-                    // 4. Product does not exist: insert new row
+                    
                     string insertSql = @"
                         INSERT INTO WarehouseInventory
                         (Product, Quantity, WarehouseId)
@@ -107,7 +107,7 @@ namespace WarehouseManagement.Controllers
                         insertSql, request, transaction);
                 }
 
-                // 5. Save both changes
+                
                 transaction.Commit();
 
                 return Ok(new
