@@ -233,7 +233,7 @@
             loadInventory();
         });
 
-        // Load inventory
+        
         function loadInventory() {
 
         $.ajax({
@@ -335,7 +335,7 @@
         return;
         }
 
-        // Send transfer request to API
+        
         $.ajax({
         url: apiUrl + "/transfer",
         type: "POST",
@@ -350,7 +350,7 @@
 
         $("#transferForm")[0].reset();
 
-        // Refresh inventory after transfer
+        
         loadInventory();
         },
 
